@@ -109,33 +109,32 @@ def get_fast_api_app(
     return project, location, agent_engine_id
 
   # Build the Memory service
-  if memory_service:
-    pass
-  elif memory_service_uri:
-    if memory_service_uri.startswith("rag://"):
-      from ..memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService
+  if not memory_service:
+    if memory_service_uri:
+      if memory_service_uri.startswith("rag://"):
+        from ..memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService
 
-      rag_corpus = memory_service_uri.split("://")[1]
-      if not rag_corpus:
-        raise click.ClickException("Rag corpus can not be empty.")
-      envs.load_dotenv_for_agent("", agents_dir)
-      memory_service = VertexAiRagMemoryService(
-          rag_corpus=f'projects/{os.environ["GOOGLE_CLOUD_PROJECT"]}/locations/{os.environ["GOOGLE_CLOUD_LOCATION"]}/ragCorpora/{rag_corpus}'
-      )
-    elif memory_service_uri.startswith("agentengine://"):
-      agent_engine_id_or_resource_name = memory_service_uri.split("://")[1]
-      project, location, agent_engine_id = _parse_agent_engine_resource_name(
-          agent_engine_id_or_resource_name
-      )
-      memory_service = VertexAiMemoryBankService(
-          project=project,
-          location=location,
-          agent_engine_id=agent_engine_id,
-      )
-    else:
-      raise click.ClickException(
-          "Unsupported memory service URI: %s" % memory_service_uri
-      )
+        rag_corpus = memory_service_uri.split("://")[1]
+        if not rag_corpus:
+          raise click.ClickException("Rag corpus can not be empty.")
+        envs.load_dotenv_for_agent("", agents_dir)
+        memory_service = VertexAiRagMemoryService(
+            rag_corpus=f'projects/{os.environ["GOOGLE_CLOUD_PROJECT"]}/locations/{os.environ["GOOGLE_CLOUD_LOCATION"]}/ragCorpora/{rag_corpus}'
+        )
+      elif memory_service_uri.startswith("agentengine://"):
+        agent_engine_id_or_resource_name = memory_service_uri.split("://")[1]
+        project, location, agent_engine_id = _parse_agent_engine_resource_name(
+            agent_engine_id_or_resource_name
+        )
+        memory_service = VertexAiMemoryBankService(
+            project=project,
+            location=location,
+            agent_engine_id=agent_engine_id,
+        )
+      else:
+        raise click.ClickException(
+            "Unsupported memory service URI: %s" % memory_service_uri
+        )
   else:
     memory_service = InMemoryMemoryService()
 
